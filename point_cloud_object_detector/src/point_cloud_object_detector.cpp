@@ -39,8 +39,8 @@ void PointCloudObjectDetector::bbox_callback(const darknet_ros_msgs::BoundingBox
                     }
                 }
 
-                std::cout << rearranged_points.size() << std::endl;
-                std::cout << rearranged_points[0].size() << std::endl;
+                // std::cout << rearranged_points.size() << std::endl;
+                // std::cout << rearranged_points[0].size() << std::endl;
 
                 if(!(b.xmin == 0 && b.xmax == 0)){
                     for(int x = b.xmin; x < b.xmax; x++){
@@ -72,6 +72,9 @@ void PointCloudObjectDetector::bbox_callback(const darknet_ros_msgs::BoundingBox
 
                     double d = sqrt(pow(position.x,2)+pow(position.z,2));
                     double theta = atan2(position.z,position.x) - M_PI/2;
+
+                    position.theta = theta;
+                    position.d = d;
 
                     std::cout << "(X,Y,Z): " << "(" << position.x << "," << position.y << "," << position.z << ")" << std::endl;
                     std::cout << "distance[m]: : " << d << std::endl;

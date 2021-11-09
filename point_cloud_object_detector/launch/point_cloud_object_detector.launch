@@ -1,4 +1,6 @@
 <?xml version="1.0"?>
 <launch>
     <node pkg="point_cloud_object_detector" type="point_cloud_object_detector_node" name="object_detector" output="screen" />
+    <include file="/home/amsl/catkin_ws/src/darknet_ros/darknet_ros/launch/wrs.launch">
+    </include>
 </launch>
