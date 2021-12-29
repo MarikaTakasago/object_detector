@@ -52,6 +52,7 @@ private:
     int max_cluster_size;
     double low_target_y;
     double high_target_y;
+    bool roomba_dist_checker;
     //
     sensor_msgs::PointCloud2::Ptr ros_pc;
 

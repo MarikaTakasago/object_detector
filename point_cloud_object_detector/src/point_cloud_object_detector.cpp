@@ -111,8 +111,8 @@ void PointCloudObjectDetector::bbox_callback(const darknet_ros_msgs::BoundingBox
 
 
                         detect_target_cluster(arranged_pc,target_pc);
-                        int tr = 0;
-                        for(const auto &t :target_pc->points) values.push_back(t);
+                        if(roomba_dist_checker) for(const auto &t :target_pc->points) values.push_back(t);
+                        else if(!roomba_dist_checker) continue;
                         std::cout<<"ninjin"<<values.size()<<std::endl;
                         // std::cout<<"value.x:"<<values[20].x<<std::endl;
                     }
@@ -133,6 +133,7 @@ void PointCloudObjectDetector::bbox_callback(const darknet_ros_msgs::BoundingBox
                     double sum_y = 0.0;
                     double sum_z = 0.0;
                     int finite_count = 0;
+                    if(b.Class == "roomba" && (!roomba_dist_checker)) continue;
                     for(const auto &value : values){
                         if(isfinite(value.x) && isfinite(value.y) && isfinite(value.z)){
                             sum_x += value.x;
@@ -182,30 +183,35 @@ void PointCloudObjectDetector::detect_target_cluster(const pcl::PointCloud<pcl::
 void PointCloudObjectDetector::euclidean_clustering(const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &pc,std::vector<pcl::PointIndices> &output)
 {
 
+    if(pc->points.size() > max_cluster_size)
+    {
+        roomba_dist_checker = false;
+        return;
+    }
     pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>);
     tree->setInputCloud(pc);
 
     std::cout << "tole:" << tolerance <<std::endl;
-    // pc->header.frame_id = "base_link";
     check_pub_.publish(pc);
-    // std::cout << "size2" << pc->points.size() << std::endl;
+    std::cout << "pc_size" << pc->points.size() << std::endl;
     std::cout << "size_a" << pc->points.size() << std::endl;
     // std::cout << "ax" << pc->points[20].x << std::endl;
     std::vector<pcl::PointIndices> pc_indices;
-    pcl::EuclideanClusterExtraction<pcl::PointXYZRGB> eu;
-    eu.setClusterTolerance(tolerance);
-    eu.setMinClusterSize(min_cluster_size);
-    eu.setMaxClusterSize(max_cluster_size);
+    pcl::shared_ptr<pcl::EuclideanClusterExtraction<pcl::PointXYZRGB>> eu(new pcl::EuclideanClusterExtraction<pcl::PointXYZRGB>);
+    eu->setClusterTolerance(tolerance);
+    eu->setMinClusterSize(min_cluster_size);
+    eu->setMaxClusterSize(max_cluster_size);
     std::cout<<"neko"<<std::endl;
-    eu.setSearchMethod(tree);
+    eu->setSearchMethod(tree);
     std::cout<<"tora"<<std::endl;
-    eu.setInputCloud(pc);
+    eu->setInputCloud(pc);
     std::cout<<"tori"<<std::endl;
-    eu.extract(pc_indices);
+    eu->extract(pc_indices);
     std::cout<<"usaaa"<<std::endl;
 
     std::cout<<"indiceeeee"<<pc_indices.size()<<std::endl;
     output = std::move(pc_indices);
+    if(output.size() != 0) roomba_dist_checker = true;
     std::cout<<"indice"<<pc_indices.size()<<std::endl;
     std::cout<<"output"<<output.size()<<std::endl;
 
