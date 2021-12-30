@@ -109,6 +109,12 @@ void PointCloudObjectDetector::bbox_callback(const darknet_ros_msgs::BoundingBox
                         arranged_pc->header.frame_id = "base_link";
                         // check_pub_.publish(arranged_pc);
 
+                        if(arranged_pc->points.size() > max_cluster_size)
+                        {
+                            int n = (arranged_pc->points.size() / max_cluster_size) + 1;
+                            reduce_points(n,arranged_pc);
+                            std::cout << "reduce:" << arranged_pc->points.size();
+                        }
 
                         detect_target_cluster(arranged_pc,target_pc);
                         if(roomba_dist_checker) for(const auto &t :target_pc->points) values.push_back(t);
@@ -142,6 +148,8 @@ void PointCloudObjectDetector::bbox_callback(const darknet_ros_msgs::BoundingBox
                             finite_count ++;
                         }
                     }
+
+                    if(sum_x*sum_y*sum_z == 0) continue;
 
                     positions.header.frame_id = obj_frame_name;
                     positions.header.stamp = ros::Time::now();
@@ -188,6 +196,11 @@ void PointCloudObjectDetector::euclidean_clustering(const pcl::PointCloud<pcl::P
         roomba_dist_checker = false;
         return;
     }
+    // if(pc->points.size() > max_cluster_size)
+    // {
+    //     int n = (pc->points.size() / max_cluster_size) + 1;
+    //     reduce_points(n,pc);
+    // }
     pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>);
     tree->setInputCloud(pc);
 
@@ -209,10 +222,9 @@ void PointCloudObjectDetector::euclidean_clustering(const pcl::PointCloud<pcl::P
     eu->extract(pc_indices);
     std::cout<<"usaaa"<<std::endl;
 
-    std::cout<<"indiceeeee"<<pc_indices.size()<<std::endl;
+    std::cout<<"indice"<<pc_indices.size()<<std::endl;
     output = std::move(pc_indices);
     if(output.size() != 0) roomba_dist_checker = true;
-    std::cout<<"indice"<<pc_indices.size()<<std::endl;
     std::cout<<"output"<<output.size()<<std::endl;
 
 }
@@ -242,6 +254,14 @@ void PointCloudObjectDetector::get_target_cluster(const pcl::PointCloud<pcl::Poi
         }
     }
     return;
+}
+
+void PointCloudObjectDetector::reduce_points(int n,const pcl::PointCloud<pcl::PointXYZRGB>::Ptr &pc)
+{
+    pcl::PointCloud<pcl::PointXYZRGB> new_pc;
+    new_pc.header = pc->header;
+    for(size_t i=0;i<pc->size();i+=n) new_pc.push_back(pc->at(i));
+    *pc = std::move(new_pc);
 }
 
 void PointCloudObjectDetector::process() { ros::spin(); }
