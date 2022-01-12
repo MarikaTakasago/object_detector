@@ -46,6 +46,7 @@ private:
     std::string obj_topic_name;
     std::string obj_frame_name;
     std::string arranged_pc;
+    std::string raw_pc;
 
     bool has_received_pc;
     //add
@@ -64,7 +65,8 @@ private:
     ros::Subscriber pc_sub_;
     ros::Subscriber bbox_sub_;
     ros::Publisher obj_pub_;
-    ros::Publisher check_pub_;
+    ros::Publisher check_pub_1;
+    ros::Publisher check_pub_2;
 };
 
 #endif  // POINT_CLOUD_OBJECT_DETECTOR_H_

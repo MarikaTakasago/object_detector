@@ -7,8 +7,9 @@ PointCloudObjectDetector::PointCloudObjectDetector() : private_nh_("~"), has_rec
     private_nh_.param("obj_topic_name",obj_topic_name,{"/object_positions"});
     private_nh_.param("obj_frame_name",obj_frame_name,{"base_link"});
     private_nh_.param("arranged_pc",arranged_pc,{"check_cloud"});
+    private_nh_.param("raw_pc",raw_pc,{"check_cloud2"});
     private_nh_.getParam("tolerance",tolerance);
-    std::cout<<"to??"<<tolerance<<std::endl;
+    // std::cout<<"to??"<<tolerance<<std::endl;
     private_nh_.getParam("min_cluster_size",min_cluster_size);
     private_nh_.getParam("max_cluster_size",max_cluster_size);
     private_nh_.getParam("low_target_y",low_target_y);
@@ -17,7 +18,8 @@ PointCloudObjectDetector::PointCloudObjectDetector() : private_nh_("~"), has_rec
     pc_sub_ = nh_.subscribe(pc_topic_name,1,&PointCloudObjectDetector::pc_callback,this);
     bbox_sub_ = nh_.subscribe(bbox_topic_name,1,&PointCloudObjectDetector::bbox_callback,this);
     obj_pub_ = nh_.advertise<object_detector_msgs::ObjectPositions>(obj_topic_name,1);
-    check_pub_ = nh_.advertise<sensor_msgs::PointCloud2>(arranged_pc,10);
+    check_pub_1 = nh_.advertise<sensor_msgs::PointCloud2>(arranged_pc,10);
+    check_pub_2 = nh_.advertise<sensor_msgs::PointCloud2>(raw_pc,10);
 }
 
 void PointCloudObjectDetector::pc_callback(const sensor_msgs::PointCloud2ConstPtr& msg)
@@ -32,6 +34,8 @@ void PointCloudObjectDetector::bbox_callback(const darknet_ros_msgs::BoundingBox
 {
     if(has_received_pc)
     {
+        cloud->header.frame_id = "base_link";
+        check_pub_1.publish(cloud);
         object_detector_msgs::ObjectPositions positions;
         for(const auto &b : msg->bounding_boxes)
         {
@@ -106,8 +110,10 @@ void PointCloudObjectDetector::bbox_callback(const darknet_ros_msgs::BoundingBox
                         // arranged_pc->header = cloud->header;
                         // pcl::toROSMsg(*arranged_pc,*ros_pc);
                         // ros_pc->header = cloud->header;
+                        //
+                        // pub_pc
                         arranged_pc->header.frame_id = "base_link";
-                        // check_pub_.publish(arranged_pc);
+                        check_pub_2.publish(arranged_pc);
 
                         if(arranged_pc->points.size() > max_cluster_size)
                         {
@@ -180,12 +186,10 @@ void PointCloudObjectDetector::bbox_callback(const darknet_ros_msgs::BoundingBox
 void PointCloudObjectDetector::detect_target_cluster(const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &arranged_pc,const pcl::PointCloud<pcl::PointXYZRGB>::Ptr &target_pc)
 {
     // std::cout << "size_a" << arranged_pc->points.size() << std::endl;
-    // std::cout << "ax" << arranged_pc->points[20].x << std::endl;
     std::vector<pcl::PointIndices> pc_indices;
     euclidean_clustering(arranged_pc,pc_indices);
     get_target_cluster(arranged_pc,pc_indices,target_pc);
     std::cout << "sizet" << target_pc->points.size() << std::endl;
-    // std::cout << "tx" << target_pc->points[20].x << std::endl;
 }
 
 void PointCloudObjectDetector::euclidean_clustering(const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &pc,std::vector<pcl::PointIndices> &output)
@@ -205,10 +209,9 @@ void PointCloudObjectDetector::euclidean_clustering(const pcl::PointCloud<pcl::P
     tree->setInputCloud(pc);
 
     std::cout << "tole:" << tolerance <<std::endl;
-    check_pub_.publish(pc);
+    // check_pub_1.publish(pc);
     std::cout << "pc_size" << pc->points.size() << std::endl;
     std::cout << "size_a" << pc->points.size() << std::endl;
-    // std::cout << "ax" << pc->points[20].x << std::endl;
     std::vector<pcl::PointIndices> pc_indices;
     pcl::shared_ptr<pcl::EuclideanClusterExtraction<pcl::PointXYZRGB>> eu(new pcl::EuclideanClusterExtraction<pcl::PointXYZRGB>);
     eu->setClusterTolerance(tolerance);

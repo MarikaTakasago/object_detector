@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <launch>
+    <node pkg="rviz" type="rviz" name="rviz_pc" args="-d $(find point_cloud_object_detector)/config/pointcloud.rviz"/>
     <node pkg="point_cloud_object_detector" type="point_cloud_object_detector_node" name="object_detector" output="screen" >
         <param name="tolerance" value="0.2" type="double"/>
         <param name="min_cluster_size" value="150" type="int" />
