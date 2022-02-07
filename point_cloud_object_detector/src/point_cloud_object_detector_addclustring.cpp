@@ -41,23 +41,20 @@ void PointCloudObjectDetector::bbox_callback(const darknet_ros_msgs::BoundingBox
         {
             std::cout << "Object_Class: " << b.Class << std::endl;
             std::vector<pcl::PointXYZRGB> points;
-            std::vector<pcl::PointCloud<pcl::PointXYZRGB>> rearranged_points(cloud->height,pcl::PointCloud<pcl::PointXYZRGB>());
-            // std::vector<std::vector<pcl::PointXYZRGB>> rearranged_points(cloud->height,std::vector<pcl::PointXYZRGB>());
-            pcl::PointCloud<pcl::PointXYZRGB>::Ptr values(new pcl::PointCloud<pcl::PointXYZRGB>);
-            // std::vector<pcl::PointXYZRGB> values;
-            pcl::PointCloud<pcl::PointXYZRGB>::Ptr vavalues(new pcl::PointCloud<pcl::PointXYZRGB>);
-            // std::vector<pcl::PointXYZRGB> vavalues;
+            std::vector<std::vector<pcl::PointXYZRGB>> rearranged_points(cloud->height,std::vector<pcl::PointXYZRGB>());
+            std::vector<pcl::PointXYZRGB> values;
+            std::vector<pcl::PointXYZRGB> vavalues;
             object_detector_msgs::ObjectPosition position;
 
-            // for(const auto &p : cloud->points) points.push_back(p);
+            for(const auto &p : cloud->points) points.push_back(p);
 
-            if(cloud->points.size() == cloud->width*cloud->height)
+            if(points.size() == cloud->width*cloud->height)
             {
                 for(int i = 0; i < cloud->height; i++)
                 {
                     for(int j = 0; j < cloud->width; j++)
                     {
-                        rearranged_points.at(i).push_back(cloud->points.at(i*cloud->width+j));
+                        rearranged_points.at(i).push_back(points.at(i*cloud->width+j));
                     }
                 }
 
@@ -68,27 +65,34 @@ void PointCloudObjectDetector::bbox_callback(const darknet_ros_msgs::BoundingBox
 
                 if(!(b.xmin == 0 && b.xmax == 0))
                 {
+                    // for(int x = b.xmin; x < b.xmax; x++){
+                    //     for(int y = b.ymin; y < b.ymax; y++){
+                    //         values.push_back(rearranged_points.at(y).at(x));
+                    //     }
+                    // }
                     if(b.Class == "roomba")
                     {
                         for(int x = b.xmin; x < b.xmax; x++)
                         {
                             for(int y = b.ymin; y < b.ymax; y++)
                             {
-                                vavalues->points.push_back(rearranged_points.at(y).at(x));
+                                vavalues.push_back(rearranged_points.at(y).at(x));
                             }
                         }
                         pcl::PointCloud<pcl::PointXYZRGB>::Ptr arranged_pc(new pcl::PointCloud<pcl::PointXYZRGB>);
                         arranged_pc->width = b.xmax - b.xmin;
                         arranged_pc->height = b.ymax - b.ymin;
+                        // arranged_pc->is_dense = cloud->is_dense;
                         arranged_pc->points.resize(arranged_pc->width * arranged_pc->height);
 
                         pcl::PointCloud<pcl::PointXYZRGB>::Ptr target_pc(new pcl::PointCloud<pcl::PointXYZRGB>);
                         target_pc->width = arranged_pc->width;
                         target_pc->height = arranged_pc->height;
+                        // target_pc->is_dense = cloud->is_dense;
                         target_pc->points.resize(target_pc->width * target_pc->height);
                         std::cout<<"nyaa"<<std::endl;
                         int ar = 0;
-                        for(const auto &v : vavalues->points)
+                        for(const auto &v : vavalues)
                         {
                             if(!isnan(v.x)&&!isnan(v.y)&&!isnan(v.z))
                             {
@@ -98,8 +102,16 @@ void PointCloudObjectDetector::bbox_callback(const darknet_ros_msgs::BoundingBox
                                 ar += 1;
                             }
                         }
+                        // std::vector<int> mapping;
+                        // pcl::removeNaNFromPointCloud(*arranged_pc,*arranged_pc,mapping);
                         std::cout<<"wauu" << arranged_pc->points.size() << std::endl;
 
+                        //check arranged_pc
+                        // arranged_pc->header = cloud->header;
+                        // pcl::toROSMsg(*arranged_pc,*ros_pc);
+                        // ros_pc->header = cloud->header;
+                        //
+                        // pub_pc
                         arranged_pc->header.frame_id = "base_link";
                         check_pub_2.publish(arranged_pc);
 
@@ -107,13 +119,14 @@ void PointCloudObjectDetector::bbox_callback(const darknet_ros_msgs::BoundingBox
                         {
                             int n = (arranged_pc->points.size() / max_cluster_size) + 1;
                             reduce_points(n,arranged_pc);
-                            // std::cout << "reduce:" << arranged_pc->points.size();
+                            std::cout << "reduce:" << arranged_pc->points.size();
                         }
 
                         detect_target_cluster(arranged_pc,target_pc);
-                        if(roomba_dist_checker) for(const auto &t :target_pc->points) values->points.push_back(t);
+                        if(roomba_dist_checker) for(const auto &t :target_pc->points) values.push_back(t);
                         else if(!roomba_dist_checker) continue;
-                        std::cout<<"ninjin"<<values->points.size()<<std::endl;
+                        std::cout<<"ninjin"<<values.size()<<std::endl;
+                        // std::cout<<"value.x:"<<values[20].x<<std::endl;
                     }
 
                     if(b.Class != "roomba")
@@ -123,7 +136,7 @@ void PointCloudObjectDetector::bbox_callback(const darknet_ros_msgs::BoundingBox
                             for(int y = b.ymin; y < b.ymax; y++)
                             {
 
-                                values->points.push_back(rearranged_points.at(y).at(x));
+                                values.push_back(rearranged_points.at(y).at(x));
                             }
                         }
                     }
@@ -133,7 +146,7 @@ void PointCloudObjectDetector::bbox_callback(const darknet_ros_msgs::BoundingBox
                     double sum_z = 0.0;
                     int finite_count = 0;
                     if(b.Class == "roomba" && (!roomba_dist_checker)) continue;
-                    for(const auto &value : values->points){
+                    for(const auto &value : values){
                         if(isfinite(value.x) && isfinite(value.y) && isfinite(value.z)){
                             sum_x += value.x;
                             sum_y += value.y;
