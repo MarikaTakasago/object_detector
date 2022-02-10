@@ -6,20 +6,20 @@ PointCloudObjectDetector::PointCloudObjectDetector() : private_nh_("~"), has_rec
     private_nh_.param("bbox_topic_name",bbox_topic_name,{"/darknet_ros/bounding_boxes"});
     private_nh_.param("obj_topic_name",obj_topic_name,{"/object_positions"});
     private_nh_.param("obj_frame_name",obj_frame_name,{"base_link"});
-    private_nh_.param("arranged_pc",arranged_pc,{"check_cloud"});
-    private_nh_.param("raw_pc",raw_pc,{"check_cloud2"});
+    private_nh_.param("raw_pc",raw_pc,{"check_cloud"});
+    private_nh_.param("arranged_pc",arranged_pc,{"check_cloud2"});
+    private_nh_.param("target_pc",target_pc,{"check_cloud3"});
     private_nh_.getParam("tolerance",tolerance);
-    // std::cout<<"to??"<<tolerance<<std::endl;
     private_nh_.getParam("min_cluster_size",min_cluster_size);
     private_nh_.getParam("max_cluster_size",max_cluster_size);
-    private_nh_.getParam("low_target_y",low_target_y);
-    private_nh_.getParam("high_target_y",high_target_y);
+    private_nh_.getParam("color_cluster_th",color_cluster_th);
 
     pc_sub_ = nh_.subscribe(pc_topic_name,1,&PointCloudObjectDetector::pc_callback,this);
     bbox_sub_ = nh_.subscribe(bbox_topic_name,1,&PointCloudObjectDetector::bbox_callback,this);
     obj_pub_ = nh_.advertise<object_detector_msgs::ObjectPositions>(obj_topic_name,1);
-    check_pub_1 = nh_.advertise<sensor_msgs::PointCloud2>(arranged_pc,10);
-    check_pub_2 = nh_.advertise<sensor_msgs::PointCloud2>(raw_pc,10);
+    check_pub_1 = nh_.advertise<sensor_msgs::PointCloud2>(raw_pc,10);
+    check_pub_2 = nh_.advertise<sensor_msgs::PointCloud2>(arranged_pc,10);
+    check_pub_3 = nh_.advertise<sensor_msgs::PointCloud2>(target_pc,10);
 }
 
 void PointCloudObjectDetector::pc_callback(const sensor_msgs::PointCloud2ConstPtr& msg)
@@ -40,7 +40,7 @@ void PointCloudObjectDetector::bbox_callback(const darknet_ros_msgs::BoundingBox
         for(const auto &b : msg->bounding_boxes)
         {
             std::cout << "Object_Class: " << b.Class << std::endl;
-            std::vector<pcl::PointXYZRGB> points;
+            // std::vector<pcl::PointXYZRGB> points;
             std::vector<pcl::PointCloud<pcl::PointXYZRGB>> rearranged_points(cloud->height,pcl::PointCloud<pcl::PointXYZRGB>());
             // std::vector<std::vector<pcl::PointXYZRGB>> rearranged_points(cloud->height,std::vector<pcl::PointXYZRGB>());
             pcl::PointCloud<pcl::PointXYZRGB>::Ptr values(new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -57,26 +57,15 @@ void PointCloudObjectDetector::bbox_callback(const darknet_ros_msgs::BoundingBox
                 {
                     for(int j = 0; j < cloud->width; j++)
                     {
+                        // rearranged_points.at(i).push_back(cloud[i*cloud->width+j]);
                         rearranged_points.at(i).push_back(cloud->points.at(i*cloud->width+j));
                     }
                 }
-
-
-
-                // std::cout << rearranged_points.size() << std::endl;
-                // std::cout << rearranged_points[0].size() << std::endl;
 
                 if(!(b.xmin == 0 && b.xmax == 0))
                 {
                     if(b.Class == "roomba")
                     {
-                        for(int x = b.xmin; x < b.xmax; x++)
-                        {
-                            for(int y = b.ymin; y < b.ymax; y++)
-                            {
-                                vavalues->points.push_back(rearranged_points.at(y).at(x));
-                            }
-                        }
                         pcl::PointCloud<pcl::PointXYZRGB>::Ptr arranged_pc(new pcl::PointCloud<pcl::PointXYZRGB>);
                         arranged_pc->width = b.xmax - b.xmin;
                         arranged_pc->height = b.ymax - b.ymin;
@@ -86,15 +75,20 @@ void PointCloudObjectDetector::bbox_callback(const darknet_ros_msgs::BoundingBox
                         target_pc->width = arranged_pc->width;
                         target_pc->height = arranged_pc->height;
                         target_pc->points.resize(target_pc->width * target_pc->height);
-                        std::cout<<"nyaa"<<std::endl;
+                        // std::cout<<"nyaa"<<std::endl;
+                        for(int x = b.xmin; x < b.xmax; x++)
+                        {
+                            for(int y = b.ymin; y < b.ymax; y++)
+                            {
+                                vavalues->points.push_back(rearranged_points.at(y).at(x));
+                            }
+                        }
                         int ar = 0;
                         for(const auto &v : vavalues->points)
                         {
                             if(!isnan(v.x)&&!isnan(v.y)&&!isnan(v.z))
                             {
-                                arranged_pc->points.at(ar).x= v.x;
-                                arranged_pc->points.at(ar).y= v.y;
-                                arranged_pc->points.at(ar).z= v.z;
+                                arranged_pc->points.at(ar)= v;
                                 ar += 1;
                             }
                         }
@@ -114,6 +108,8 @@ void PointCloudObjectDetector::bbox_callback(const darknet_ros_msgs::BoundingBox
                         if(roomba_dist_checker) for(const auto &t :target_pc->points) values->points.push_back(t);
                         else if(!roomba_dist_checker) continue;
                         std::cout<<"ninjin"<<values->points.size()<<std::endl;
+                        target_pc->header.frame_id = "base_link";
+                        check_pub_3.publish(target_pc);
                     }
 
                     if(b.Class != "roomba")
@@ -147,6 +143,7 @@ void PointCloudObjectDetector::bbox_callback(const darknet_ros_msgs::BoundingBox
                     positions.header.frame_id = obj_frame_name;
                     positions.header.stamp = ros::Time::now();
                     position.Class = b.Class;
+                    position.roomba_num = target_roomba_num; //roombaじゃないときは0
                     position.probability = b.probability;
                     position.x = sum_x/(double)finite_count;
                     position.y = sum_y/(double)finite_count;
@@ -176,7 +173,8 @@ void PointCloudObjectDetector::detect_target_cluster(const pcl::PointCloud<pcl::
     std::vector<pcl::PointIndices> pc_indices;
     euclidean_clustering(arranged_pc,pc_indices);
     get_target_cluster(arranged_pc,pc_indices,target_pc);
-    std::cout << "sizet" << target_pc->points.size() << std::endl;
+    check_roomba_color(target_pc);
+    // std::cout << "sizet" << target_pc->points.size() << std::endl;
 }
 
 void PointCloudObjectDetector::euclidean_clustering(const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &pc,std::vector<pcl::PointIndices> &output)
@@ -187,63 +185,126 @@ void PointCloudObjectDetector::euclidean_clustering(const pcl::PointCloud<pcl::P
         roomba_dist_checker = false;
         return;
     }
-    // if(pc->points.size() > max_cluster_size)
-    // {
-    //     int n = (pc->points.size() / max_cluster_size) + 1;
-    //     reduce_points(n,pc);
-    // }
     pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>);
     tree->setInputCloud(pc);
 
-    std::cout << "tole:" << tolerance <<std::endl;
-    // check_pub_1.publish(pc);
-    std::cout << "pc_size" << pc->points.size() << std::endl;
-    std::cout << "size_a" << pc->points.size() << std::endl;
+    // std::cout << "tole:" << tolerance <<std::endl;
+    // std::cout << "pc_size" << pc->points.size() << std::endl;
+    // std::cout << "size_a" << pc->points.size() << std::endl;
     std::vector<pcl::PointIndices> pc_indices;
     pcl::shared_ptr<pcl::EuclideanClusterExtraction<pcl::PointXYZRGB>> eu(new pcl::EuclideanClusterExtraction<pcl::PointXYZRGB>);
     eu->setClusterTolerance(tolerance);
     eu->setMinClusterSize(min_cluster_size);
     eu->setMaxClusterSize(max_cluster_size);
-    std::cout<<"neko"<<std::endl;
+    // std::cout<<"neko"<<std::endl;
     eu->setSearchMethod(tree);
-    std::cout<<"tora"<<std::endl;
+    // std::cout<<"tora"<<std::endl;
     eu->setInputCloud(pc);
-    std::cout<<"tori"<<std::endl;
+    // std::cout<<"tori"<<std::endl;
     eu->extract(pc_indices);
-    std::cout<<"usaaa"<<std::endl;
+    // std::cout<<"usaaa"<<std::endl;
 
-    std::cout<<"indice"<<pc_indices.size()<<std::endl;
+    // std::cout<<"indice"<<pc_indices.size()<<std::endl;
     output = std::move(pc_indices);
     if(output.size() != 0) roomba_dist_checker = true;
-    std::cout<<"output"<<output.size()<<std::endl;
+    // std::cout<<"output"<<output.size()<<std::endl;
 
 }
 
 void PointCloudObjectDetector::get_target_cluster(const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &pc,std::vector<pcl::PointIndices> &pc_indices,const pcl::PointCloud<pcl::PointXYZRGB>::Ptr &output)
 {
+    static auto comp = [](const pcl::PointIndices &a, const pcl::PointIndices &b) -> bool
+    {//大きい順に並び替え
+        return a.indices.size() > b.indices.size();
+    };
+    sort(pc_indices.begin(),pc_indices.end(),comp);
+
     for(const auto &point_indices:pc_indices)
     {
-        std::cout<<"saru"<<std::endl;
+        // std::cout<<"saru"<<std::endl;
         bool target_chcker = true;
         pcl::PointCloud<pcl::PointXYZRGB> cluster;
 
-        for(const auto &itr : point_indices.indices)
-        {
-            cluster.push_back(pc->points.at(itr));
-            // if(cluster.back().y < low_target_y || high_target_y < cluster.back().y)
-            // {
-            //     target_chcker = false;
-            //     break;
-            // }
-        }
+        for(const auto &itr : point_indices.indices) cluster.push_back(pc->points.at(itr));
         if(target_chcker)
         {
             *output = std::move(cluster);
-            // std::cout<<"cluster"<<cluster.points[0].x<<std::endl;
             return;
         }
     }
     return;
+}
+
+void PointCloudObjectDetector::check_roomba_color(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr &target)
+{
+    color_counter_reset();
+    for(const auto &rgb : *target)
+    {
+        pcl::PointXYZHSV hsv;
+        pcl::PointXYZRGBtoXYZHSV(rgb,hsv);
+        double h = hsv.h/2;
+        double s = hsv.s*255;
+        double v = hsv.v*255;
+        color_counter(h,s,v);
+    }
+    color_checker();
+}
+
+void PointCloudObjectDetector::color_checker()
+{
+    double c = 0;
+    if(green > color_cluster_th)
+    {
+        target_roomba_num = 1;
+        c = green;
+    }
+    if(yellow > color_cluster_th)
+    {
+        target_roomba_num = 2;
+        c = yellow;
+    }
+    if(blue > color_cluster_th)
+    {
+        target_roomba_num = 3;
+        c = blue;
+    }
+    if(orange > color_cluster_th)
+    {
+        target_roomba_num = 4;
+        c = orange;
+    }
+    if(purple > color_cluster_th)
+    {
+        target_roomba_num = 5;
+        c = purple;
+    }
+    if(red > color_cluster_th)
+    {
+        target_roomba_num = 6;
+        c = red;
+    }
+    // else target_roomba_num = 0;
+
+    std::cout<<"color:"<<c<<std::endl;
+    std::cout<<"target_roomba:roomba"<<target_roomba_num<<std::endl;
+}
+
+void PointCloudObjectDetector::color_counter(double h,double s,double v)
+{
+        if((h_green_upper > h && h_green_lower < h) && (s_green_upper > s && s_green_lower < s) && (v_green_upper > v && v_green_lower < v)) green += 1;
+        else if((h_yellow_upper > h && h_yellow_lower < h) && (s_yellow_upper > s && s_yellow_lower < s) && (v_yellow_upper > v && v_yellow_lower < v)) yellow += 1;
+        else if((h_blue_upper > h && h_blue_lower < h) && (s_blue_upper > s && s_blue_lower < s) && (v_blue_upper > v && v_blue_lower < v)) blue += 1;
+        else if((h_orange_upper > h && h_orange_lower < h) && (s_orange_upper > s && s_orange_lower < s) && (v_orange_upper > v && v_orange_lower < v)) orange += 1;
+        else if((h_purple_upper > h && h_purple_lower < h) && (s_purple_upper > s && s_purple_lower < s) && (v_purple_upper > v && v_purple_lower < v)) purple += 1;
+        else if((h_red_upper > h && h_red_lower < h) && (s_red_upper > s && s_red_lower < s) && (v_red_upper > v && v_red_lower < v)) red += 1;
+        else other_color += 1;
+}
+
+void PointCloudObjectDetector::color_counter_reset()
+{
+    green = yellow = blue = orange = purple = red = 0;
+    other_color = 0;
+    target_roomba_num = 0;
 }
 
 void PointCloudObjectDetector::reduce_points(int n,const pcl::PointCloud<pcl::PointXYZRGB>::Ptr &pc)
