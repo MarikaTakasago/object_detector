@@ -27,7 +27,7 @@ void PointCloudObjectDetector::pc_callback(const sensor_msgs::PointCloud2ConstPt
     cloud->points.clear();
     pcl::fromROSMsg(*msg,*cloud);
     has_received_pc = true;
-    std::cout<<"cloud size:"<<cloud->points.size()<<std::endl;
+    // std::cout<<"cloud size:"<<cloud->points.size()<<std::endl;
 }
 
 void PointCloudObjectDetector::bbox_callback(const darknet_ros_msgs::BoundingBoxesConstPtr& msg)
@@ -39,7 +39,7 @@ void PointCloudObjectDetector::bbox_callback(const darknet_ros_msgs::BoundingBox
         object_detector_msgs::ObjectPositions positions;
         for(const auto &b : msg->bounding_boxes)
         {
-            std::cout << "Object_Class: " << b.Class << std::endl;
+            // std::cout << "Object_Class: " << b.Class << std::endl;
             // std::vector<pcl::PointXYZRGB> points;
             std::vector<pcl::PointCloud<pcl::PointXYZRGB>> rearranged_points(cloud->height,pcl::PointCloud<pcl::PointXYZRGB>());
             // std::vector<std::vector<pcl::PointXYZRGB>> rearranged_points(cloud->height,std::vector<pcl::PointXYZRGB>());
@@ -155,9 +155,9 @@ void PointCloudObjectDetector::bbox_callback(const darknet_ros_msgs::BoundingBox
                     position.theta = theta;
                     position.d = d;
 
-                    std::cout << "(X,Y,Z): " << "(" << position.x << "," << position.y << "," << position.z << ")" << std::endl;
-                    std::cout << "distance[m]: : " << d << std::endl;
-                    std::cout << "theta[rad] : " << theta << std::endl;
+                    // std::cout << "(X,Y,Z): " << "(" << position.x << "," << position.y << "," << position.z << ")" << std::endl;
+                    // std::cout << "distance[m]: : " << d << std::endl;
+                    // std::cout << "theta[rad] : " << theta << std::endl;
                     std::cout << std::endl;
                 }
             }
@@ -258,34 +258,35 @@ void PointCloudObjectDetector::color_checker()
         target_roomba_num = 1;
         c = green;
     }
-    if(yellow > color_cluster_th)
+    if(yellow > color_cluster_th && yellow > c)
     {
         target_roomba_num = 2;
         c = yellow;
     }
-    if(blue > color_cluster_th)
+    if(blue > color_cluster_th && blue > c)
     {
         target_roomba_num = 3;
         c = blue;
     }
-    if(orange > color_cluster_th)
+    if(orange > color_cluster_th && orange > c)
     {
         target_roomba_num = 4;
         c = orange;
     }
-    if(purple > color_cluster_th)
+    if(purple > color_cluster_th && purple > c)
     {
         target_roomba_num = 5;
         c = purple;
     }
-    if(red > color_cluster_th)
+    if(red > color_cluster_th && red > c)
     {
         target_roomba_num = 6;
         c = red;
     }
     // else target_roomba_num = 0;
 
-    std::cout<<"color:"<<c<<std::endl;
+    // std::cout<<"yellow:"<<yellow<<std::endl;
+    // std::cout<<"orange:"<<orange<<std::endl;
     std::cout<<"target_roomba:roomba"<<target_roomba_num<<std::endl;
 }
 

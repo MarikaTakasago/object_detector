@@ -79,11 +79,11 @@ private:
     double v_yellow_upper = 255;
 
     double blue;
-    double h_blue_lower = 95;
+    double h_blue_lower = 90;
     double h_blue_upper = 110;
     double s_blue_lower = 210;
     double s_blue_upper = 255;
-    double v_blue_lower = 40;
+    double v_blue_lower = 35;
     double v_blue_upper = 180;
 
     double orange;
