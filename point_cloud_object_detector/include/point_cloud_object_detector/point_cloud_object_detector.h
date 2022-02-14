@@ -63,52 +63,52 @@ private:
     int color_cluster_th;
 
     double green;
-    double h_green_lower = 60;
-    double h_green_upper = 100;
-    double s_green_lower = 100;
-    double s_green_upper = 230;
-    double v_green_lower = 50;
-    double v_green_upper = 100;
+    double h_green_lower;
+    double h_green_upper;
+    double s_green_lower;
+    double s_green_upper;
+    double v_green_lower;
+    double v_green_upper;
 
     double yellow;
-    double h_yellow_lower = 20;
-    double h_yellow_upper = 40;
-    double s_yellow_lower = 120;
-    double s_yellow_upper = 210;
-    double v_yellow_lower = 90;
-    double v_yellow_upper = 255;
+    double h_yellow_lower;
+    double h_yellow_upper;
+    double s_yellow_lower;
+    double s_yellow_upper;
+    double v_yellow_lower;
+    double v_yellow_upper;
 
     double blue;
-    double h_blue_lower = 90;
-    double h_blue_upper = 110;
-    double s_blue_lower = 210;
-    double s_blue_upper = 255;
-    double v_blue_lower = 35;
-    double v_blue_upper = 180;
+    double h_blue_lower;
+    double h_blue_upper;
+    double s_blue_lower;
+    double s_blue_upper;
+    double v_blue_lower;
+    double v_blue_upper;
 
     double orange;
-    double h_orange_lower = 10;
-    double h_orange_upper = 20;
-    double s_orange_lower = 80;
-    double s_orange_upper = 200;
-    double v_orange_lower = 120;
-    double v_orange_upper = 200;
+    double h_orange_lower;
+    double h_orange_upper;
+    double s_orange_lower;
+    double s_orange_upper;
+    double v_orange_lower;
+    double v_orange_upper;
 
     double purple;
-    double h_purple_lower = 110;
-    double h_purple_upper = 150;
-    double s_purple_lower = 80;
-    double s_purple_upper = 230;
-    double v_purple_lower = 40;
-    double v_purple_upper = 100;
+    double h_purple_lower;
+    double h_purple_upper;
+    double s_purple_lower;
+    double s_purple_upper;
+    double v_purple_lower;
+    double v_purple_upper;
 
     double red;
-    double h_red_lower = 130;
-    double h_red_upper = 180;
-    double s_red_lower = 180;
-    double s_red_upper = 230;
-    double v_red_lower = 80;
-    double v_red_upper = 180;
+    double h_red_lower;
+    double h_red_upper;
+    double s_red_lower;
+    double s_red_upper;
+    double v_red_lower;
+    double v_red_upper;
 
     double other_color;
     //
