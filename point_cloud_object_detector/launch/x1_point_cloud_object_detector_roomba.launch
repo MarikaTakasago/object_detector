@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<launch>
+    <rosparam command="load" file="$(find point_cloud_object_detector)/config/color_param.yaml"/>
+    <!-- <arg name="manager_name" default="nodelet_magager" /> -->
+    <!-- <node pkg="nodelet" type="nodelet" name="$(arg manager_name)" args="manager" output="screen"/> -->
+    <node pkg="point_cloud_object_detector" type="point_cloud_object_detector_node" name="object_detector6" output="screen" >
+        <param name="tolerance" value="0.2" type="double"/>
+        <param name="min_cluster_size" value="500" type="int" />
+        <param name="max_cluster_size" value="6000" type="int" />
+        <param name="color_cluster_th" value="40" type="int" />
+        <rosparam command="load" file="$(find point_cloud_object_detector)/config/color_param.yaml"/>
+        <remap from="/object_positions" to="roomba6/object_positions" />
+        <remap from="/darknet_ros/bounding_boxes" to="roomba6/darknet_ros/bounding_boxes" />
+        <remap from="/camera/depth_registered/points" to="roomba6/camera/depth_registered/points" />
+        <remap from="/camera/image_rect_color/compressed" to="roomba6/camera/color/image_rect_color/compressed" />
+    </node>
+    <!-- <node name="depth_republish6" pkg="image_transport" type="republish" args="compressed raw"> -->
+    <!--     <remap from="in" to="roomba6/camera/aligned_depth_to_color/image_raw" /> -->
+    <!--     <remap from="out" to="roomba6/camera/aligned_depth_to_color/image_raw" /> -->
+    <!-- </node> -->
+    <!-- <node name="color_republish6" pkg="image_transport" type="republish" args="compressed raw"> -->
+    <!--     <remap from="in" to="roomba6/camera/color/image_rect_color" /> -->
+    <!--     <remap from="out" to="roomba6/camera/color/image_rect_color" /> -->
+    <!-- </node> -->
+    <!-- <node pkg="nodelet" type="nodelet" name="point_cloud_xyzrgb6" args="load depth_image_proc/point_cloud_xyzrgb $(arg manager_name)"> -->
+    <!--     <remap from="rgb/camera_info" to="roomba6/camera/color/camera_info" /> -->
+    <!--     <remap from="rgb/image_rect_color" to="roomba6/camera/color/image_rect_color/compressed" /> -->
+    <!--     <remap from="rgb/image_rect" to="roomba6/camera/aligned_depth_to_color/image_raw/compressed" /> -->
+    <!--     <remap from="points" to="roomba6/camera/depth_registered/points" /> -->
+    <!-- </node> -->
+
+</launch>

@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+    <node pkg="point_cloud_object_detector" type="point_cloud_object_detector_node" name="object_detector6" output="screen" >
+        <param name="tolerance" value="0.2" type="double"/>
+        <param name="min_cluster_size" value="500" type="int" />
+        <param name="max_cluster_size" value="6000" type="int" />
+        <param name="color_cluster_th" value="40" type="int" />
+        <rosparam command="load" file="$(find point_cloud_object_detector)/config/color_param.yaml"/>
+        <remap from="/object_positions" to="/roomba6/object_positions" />
+        <remap from="/darknet_ros/bounding_boxes" to="/roomba6/darknet_ros/bounding_boxes" />
+        <remap from="/camera/depth_registered/points" to="roomba6/camera/depth_registered/points" />
+    </node>
+</launch>

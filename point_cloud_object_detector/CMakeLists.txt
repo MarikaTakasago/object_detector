@@ -11,7 +11,11 @@ find_package(catkin REQUIRED COMPONENTS
   darknet_ros_msgs
   object_detector_msgs
   message_filters
+  cv_bridge
 )
+
+find_package(OpenCV REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
 
 find_package(PCL 1.10 REQUIRED)
 
@@ -26,12 +30,14 @@ include_directories(
 )
 
 add_library(${PROJECT_NAME} src/point_cloud_object_detector.cpp)
+# add_library(${PROJECT_NAME} src/point_cloud_object_detector_1130.cpp)
 
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${OpenCV_LIBS})
 
 add_executable(point_cloud_object_detector_node src/point_cloud_object_detector_node.cpp src/point_cloud_object_detector.cpp)
+# add_executable(point_cloud_object_detector_node src/point_cloud_object_detector_node.cpp src/point_cloud_object_detector_1130.cpp)
 add_dependencies(point_cloud_object_detector_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(point_cloud_object_detector_node ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+target_link_libraries(point_cloud_object_detector_node ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} ${OpenCV_LIBRARIES})
 
 add_executable(pcl_subscriber src/pcl_subscriber.cpp)
 target_link_libraries(pcl_subscriber ${catkin_LIBRARIES} ${PCL_LIBRARIES})
