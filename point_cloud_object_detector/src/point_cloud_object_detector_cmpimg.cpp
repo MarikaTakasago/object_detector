@@ -1,4 +1,4 @@
-#include "point_cloud_object_detector/point_cloud_object_detector_r.h"
+#include "point_cloud_object_detector/point_cloud_object_detector.h"
 
 PointCloudObjectDetector::PointCloudObjectDetector() : private_nh_("~"), has_received_pc_(false)
 {
@@ -6,7 +6,7 @@ PointCloudObjectDetector::PointCloudObjectDetector() : private_nh_("~"), has_rec
     private_nh_.param("bbox_topic_name",bbox_topic_name_,{"/darknet_ros/bounding_boxes"});
     private_nh_.param("obj_topic_name",obj_topic_name_,{"/object_positions"});
     private_nh_.param("obj_frame_name",obj_frame_name_,{"base_link"});
-    private_nh_.param("img_topic_name",img_topic_name_,{"/camera/image_rect_color"});
+    private_nh_.param("img_topic_name",img_topic_name_,{"/camera/image_rect_color/compressed"});
     private_nh_.param("param_file_name",param_file_name_,{"/home/amsl/catkin_ws/src/point_cloud_object_detector/config/color_param.yaml"});
 
     private_nh_.getParam("tolerance",tolerance_);
@@ -87,30 +87,26 @@ void PointCloudObjectDetector::pc_callback(const sensor_msgs::PointCloud2ConstPt
     // std::cout<<"cloud size:"<<cloud->points.size()<<std::endl;
 }
 
-void PointCloudObjectDetector::image_callback(const sensor_msgs::ImageConstPtr& msg)
+void PointCloudObjectDetector::image_callback(const sensor_msgs::CompressedImageConstPtr& msg)
 {
-    //to cv mat
-    cv_bridge::CvImagePtr cv_ptr;
-    try
-    {
-        cv_ptr = cv_bridge::toCvCopy(msg,sensor_msgs::image_encodings::BGR8);
-    }
-    catch(cv_bridge::Exception& e)
-    {
-        ROS_ERROR("cv_bridge exception: %s",e.what());
-        return;
-    }
-    image_ = cv_ptr->image;
+    // ROS_INFO("format:%s",msg->format.c_str());
+    rgb_image_ = cv::imdecode(cv::Mat(msg->data),1);
+    //to rgb
+    cv::cvtColor(rgb_image_,rgb_image_,cv::COLOR_BGR2RGB);
+    //to rosmsg
+    cv_bridge::CvImage cv_image(std_msgs::Header(),"rgb8",rgb_image_);
+    sensor_msgs::Image ros_image;
+    cv_image.toImageMsg(ros_image);
+    // image_pub_.publish(ros_image);
 
-    //to hsv image
-    // cv::cvtColor(rgb_image_,hsv_image_,cv::COLOR_RGB2HSV);
-    cv::cvtColor(image_,hsv_image_,cv::COLOR_BGR2HSV);
+    //rgb image to hsv image
+    cv::cvtColor(rgb_image_,hsv_image_,cv::COLOR_RGB2HSV);
     //check hsv image
     // cv::imshow("hsv_image",hsv_image_);
     // cv::waitKey(1);
     // get image size
-    image_width_ = image_.cols;
-    image_height_ = image_.rows;
+    image_width_ = rgb_image_.cols;
+    image_height_ = rgb_image_.rows;
     get_image_ = true;
 }
 

@@ -30,7 +30,7 @@
     <!--     <remap from="depth_registered/image_rect" to="roomba1/camera/aligned_depth_to_color/image_raw" /> -->
     <!--     <remap from="depth_registered/points" to="roomba1/camera/depth_registered/points" /> -->
     <!-- </node> -->
-    <!-- &#60;&#33;&#45;&#45;roomba2&#45;&#45;&#62; -->
+    <!-- &#60;&#33;&#45;&#45; roomba2 &#45;&#45;&#62; -->
     <!-- <node pkg="point_cloud_object_detector" type="point_cloud_object_detector_node" name="object_detector2" output="screen" > -->
     <!--     <param name="tolerance" value="0.2" type="double"/> -->
     <!--     <param name="min_cluster_size" value="500" type="int" /> -->
@@ -55,17 +55,20 @@
     <!--     <remap from="depth_registered/image_rect" to="roomba2/camera/aligned_depth_to_color/image_raw" /> -->
     <!--     <remap from="depth_registered/points" to="roomba2/camera/depth_registered/points" /> -->
     <!-- </node> -->
-    <!-- &#60;&#33;&#45;&#45;roomba3&#45;&#45;&#62; -->
-    <!-- <node pkg="point_cloud_object_detector" type="point_cloud_object_detector_node" name="object_detector3" output="screen" > -->
-    <!--     <param name="tolerance" value="0.2" type="double"/> -->
-    <!--     <param name="min_cluster_size" value="500" type="int" /> -->
-    <!--     <param name="max_cluster_size" value="6000" type="int" /> -->
-    <!--     <param name="color_cluster_th" value="40" type="int" /> -->
-    <!--     <rosparam command="load" file="$(find point_cloud_object_detector)/config/color_param.yaml"/> -->
-    <!--     <remap from="/object_positions" to="roomba3/object_positions" /> -->
-    <!--     <remap from="/darknet_ros/bounding_boxes" to="roomba3/darknet_ros/bounding_boxes" /> -->
-    <!--     <remap from="/camera/depth_registered/points" to="roomba3/camera/depth_registered/points" /> -->
-    <!-- </node> -->
+    <!--roomba3-->
+    <node pkg="point_cloud_object_detector" type="point_cloud_object_detector_node" name="object_detector3" output="screen" >
+        <param name="tolerance" value="0.2" type="double"/>
+        <param name="min_cluster_size" value="500" type="int" />
+        <param name="max_cluster_size" value="6000" type="int" />
+        <param name="color_cluster_th" value="40" type="int" />
+        <param name="img_th" value="40" type="int" />
+        <param name="param_file_name" value="/home/amsl/catkin_ws/src/point_cloud_object_detector/config/color_param.yaml" type="string" />
+        <remap from="/object_positions" to="roomba3/object_positions" />
+        <remap from="/darknet_ros/bounding_boxes" to="roomba3/darknet_ros/bounding_boxes" />
+        <remap from="/camera/depth_registered/points" to="roomba3/camera/depth_registered/points" />
+        <remap from="/camera/image_rect_color/compressed" to="roomba3/camera/color/image_rect_color/compressed" />
+        <!-- <remap from="/camera/image_rect_color" to="roomba6/camera/color/image_rect_color" /> -->
+    </node>
     <!-- <node name="depth_republish3" pkg="image_transport" type="republish" args="compressed raw"> -->
     <!--     <remap from="in" to="roomba3/camera/aligned_depth_to_color/image_raw" /> -->
     <!--     <remap from="out" to="roomba3/camera/aligned_depth_to_color/image_raw" /> -->
@@ -74,23 +77,26 @@
     <!--     <remap from="in" to="roomba3/camera/color/image_rect_color" /> -->
     <!--     <remap from="out" to="roomba3/camera/color/image_rect_color" /> -->
     <!-- </node> -->
-    <!-- <node pkg="nodelet" type="nodelet" name="point_cloud_xyzrgb3" args="load depth_image_proc/point_cloud_xyzrgb $(arg manager_name)"> -->
-    <!--     <remap from="rgb/camera_info" to="roomba3/camera/color/camera_info" /> -->
-    <!--     <remap from="rgb/image_rect_color" to="roomba3/camera/color/image_rect_color" /> -->
-    <!--     <remap from="depth_registered/image_rect" to="roomba3/camera/aligned_depth_to_color/image_raw" /> -->
-    <!--     <remap from="depth_registered/points" to="roomba3/camera/depth_registered/points" /> -->
-    <!-- </node> -->
-    <!-- &#60;&#33;&#45;&#45;roomba4&#45;&#45;&#62; -->
-    <!-- <node pkg="point_cloud_object_detector" type="point_cloud_object_detector_node" name="object_detector4" output="screen" > -->
-    <!--     <param name="tolerance" value="0.2" type="double"/> -->
-    <!--     <param name="min_cluster_size" value="500" type="int" /> -->
-    <!--     <param name="max_cluster_size" value="6000" type="int" /> -->
-    <!--     <param name="color_cluster_th" value="40" type="int" /> -->
-    <!--     <rosparam command="load" file="$(find point_cloud_object_detector)/config/color_param.yaml"/> -->
-    <!--     <remap from="/object_positions" to="roomba4/object_positions" /> -->
-    <!--     <remap from="/darknet_ros/bounding_boxes" to="roomba4/darknet_ros/bounding_boxes" /> -->
-    <!--     <remap from="/camera/depth_registered/points" to="roomba4/camera/depth_registered/points" /> -->
-    <!-- </node> -->
+    <node pkg="nodelet" type="nodelet" name="point_cloud_xyzrgb3" args="load depth_image_proc/point_cloud_xyzrgb $(arg manager_name)">
+        <remap from="rgb/camera_info" to="roomba3/camera/color/camera_info" />
+        <remap from="rgb/image_rect_color" to="roomba3/camera/color/image_rect_color" />
+        <remap from="depth_registered/image_rect" to="roomba3/camera/aligned_depth_to_color/image_raw" />
+        <remap from="depth_registered/points" to="roomba3/camera/depth_registered/points" />
+    </node>
+    <include file="$(find point_cloud_object_detector)/launch/rosbag_recorder.launch">
+        <arg name="roomba" value="4"/>
+    </include>
+    <!--roomba4-->
+    <node pkg="point_cloud_object_detector" type="point_cloud_object_detector_node" name="object_detector4" output="screen" >
+        <param name="tolerance" value="0.2" type="double"/>
+        <param name="min_cluster_size" value="500" type="int" />
+        <param name="max_cluster_size" value="6000" type="int" />
+        <param name="color_cluster_th" value="40" type="int" />
+        <rosparam command="load" file="$(find point_cloud_object_detector)/config/color_param.yaml"/>
+        <remap from="/object_positions" to="roomba4/object_positions" />
+        <remap from="/darknet_ros/bounding_boxes" to="roomba4/darknet_ros/bounding_boxes" />
+        <remap from="/camera/depth_registered/points" to="roomba4/camera/depth_registered/points" />
+    </node>
     <!-- <node name="depth_republish4" pkg="image_transport" type="republish" args="compressed raw"> -->
     <!--     <remap from="in" to="roomba4/camera/aligned_depth_to_color/image_raw" /> -->
     <!--     <remap from="out" to="roomba4/camera/aligned_depth_to_color/image_raw" /> -->
@@ -99,23 +105,28 @@
     <!--     <remap from="in" to="roomba4/camera/color/image_rect_color" /> -->
     <!--     <remap from="out" to="roomba4/camera/color/image_rect_color" /> -->
     <!-- </node> -->
-    <!-- <node pkg="nodelet" type="nodelet" name="point_cloud_xyzrgb4" args="load depth_image_proc/point_cloud_xyzrgb $(arg manager_name)"> -->
-    <!--     <remap from="rgb/camera_info" to="roomba4/camera/color/camera_info" /> -->
-    <!--     <remap from="rgb/image_rect_color" to="roomba4/camera/color/image_rect_color" /> -->
-    <!--     <remap from="depth_registered/image_rect" to="roomba4/camera/aligned_depth_to_color/image_raw" /> -->
-    <!--     <remap from="depth_registered/points" to="roomba4/camera/depth_registered/points" /> -->
-    <!-- </node> -->
-    <!-- &#60;&#33;&#45;&#45;roomba5&#45;&#45;&#62; -->
-    <!-- <node pkg="point_cloud_object_detector" type="point_cloud_object_detector_node" name="object_detector5" output="screen" > -->
-    <!--     <param name="tolerance" value="0.2" type="double"/> -->
-    <!--     <param name="min_cluster_size" value="500" type="int" /> -->
-    <!--     <param name="max_cluster_size" value="6000" type="int" /> -->
-    <!--     <param name="color_cluster_th" value="40" type="int" /> -->
-    <!--     <rosparam command="load" file="$(find point_cloud_object_detector)/config/color_param.yaml"/> -->
-    <!--     <remap from="/object_positions" to="roomba5/object_positions" /> -->
-    <!--     <remap from="/darknet_ros/bounding_boxes" to="roomba5/darknet_ros/bounding_boxes" /> -->
-    <!--     <remap from="/camera/depth_registered/points" to="roomba5/camera/depth_registered/points" /> -->
-    <!-- </node> -->
+    <node pkg="nodelet" type="nodelet" name="point_cloud_xyzrgb4" args="load depth_image_proc/point_cloud_xyzrgb $(arg manager_name)">
+        <remap from="rgb/camera_info" to="roomba4/camera/color/camera_info" />
+        <remap from="rgb/image_rect_color" to="roomba4/camera/color/image_rect_color" />
+        <remap from="depth_registered/image_rect" to="roomba4/camera/aligned_depth_to_color/image_raw" />
+        <remap from="depth_registered/points" to="roomba4/camera/depth_registered/points" />
+    </node>
+    <include file="$(find point_cloud_object_detector)/launch/rosbag_recorder.launch">
+        <arg name="roomba" value="4"/>
+    </include>
+    <!--roomba5-->
+    <node pkg="point_cloud_object_detector" type="point_cloud_object_detector_node" name="object_detector5" output="screen" >
+        <param name="tolerance" value="0.2" type="double"/>
+        <param name="min_cluster_size" value="500" type="int" />
+        <param name="max_cluster_size" value="6000" type="int" />
+        <param name="color_cluster_th" value="40" type="int" />
+        <param name="img_th" value="40" type="int" />
+        <rosparam command="load" file="$(find point_cloud_object_detector)/config/color_param.yaml"/>
+        <remap from="/object_positions" to="roomba5/object_positions" />
+        <remap from="/darknet_ros/bounding_boxes" to="roomba5/darknet_ros/bounding_boxes" />
+        <remap from="/camera/depth_registered/points" to="roomba5/camera/depth_registered/points" />
+        <remap from="/camera/image_rect_color/compressed" to="roomba5/camera/color/image_rect_color/compressed" />
+    </node>
     <!-- <node name="depth_republish5" pkg="image_transport" type="republish" args="compressed raw"> -->
     <!--     <remap from="in" to="roomba5/camera/aligned_depth_to_color/image_raw" /> -->
     <!--     <remap from="out" to="roomba5/camera/aligned_depth_to_color/image_raw" /> -->
@@ -124,26 +135,29 @@
     <!--     <remap from="in" to="roomba5/camera/color/image_rect_color" /> -->
     <!--     <remap from="out" to="roomba5/camera/color/image_rect_color" /> -->
     <!-- </node> -->
-    <!-- <node pkg="nodelet" type="nodelet" name="point_cloud_xyzrgb5" args="load depth_image_proc/point_cloud_xyzrgb $(arg manager_name)"> -->
-    <!--     <remap from="rgb/camera_info" to="roomba5/camera/color/camera_info" /> -->
-    <!--     <remap from="rgb/image_rect_color" to="roomba5/camera/color/image_rect_color" /> -->
-    <!--     <remap from="depth_registered/image_rect" to="roomba5/camera/aligned_depth_to_color/image_raw" /> -->
-    <!--     <remap from="depth_registered/points" to="roomba5/camera/depth_registered/points" /> -->
-    <!-- </node> -->
+    <node pkg="nodelet" type="nodelet" name="point_cloud_xyzrgb5" args="load depth_image_proc/point_cloud_xyzrgb $(arg manager_name)">
+        <remap from="rgb/camera_info" to="roomba5/camera/color/camera_info" />
+        <remap from="rgb/image_rect_color" to="roomba5/camera/color/image_rect_color" />
+        <remap from="depth_registered/image_rect" to="roomba5/camera/aligned_depth_to_color/image_raw" />
+        <remap from="depth_registered/points" to="roomba5/camera/depth_registered/points" />
+    </node>
+    <include file="$(find point_cloud_object_detector)/launch/rosbag_recorder.launch">
+        <arg name="roomba" value="5"/>
+    </include>
     <!--roomba6-->
-    <!-- <node pkg="point_cloud_object_detector" type="point_cloud_object_detector_node" name="object_detector6" output="screen" > -->
-    <!--     <param name="tolerance" value="0.2" type="double"/> -->
-    <!--     <param name="min_cluster_size" value="500" type="int" /> -->
-    <!--     <param name="max_cluster_size" value="6000" type="int" /> -->
-    <!--     <param name="color_cluster_th" value="40" type="int" /> -->
-    <!--     <param name="img_th" value="40" type="int" /> -->
-    <!--     <param name="param_file_name" value="/home/amsl/catkin_ws/src/point_cloud_object_detector/config/color_param.yaml" type="string" /> -->
-    <!--     <remap from="/object_positions" to="roomba6/object_positions" /> -->
-    <!--     <remap from="/darknet_ros/bounding_boxes" to="roomba6/darknet_ros/bounding_boxes" /> -->
-    <!--     <remap from="/camera/depth_registered/points" to="roomba6/camera/depth_registered/points" /> -->
-    <!--     <remap from="/camera/image_rect_color/compressed" to="roomba6/camera/color/image_rect_color/compressed" /> -->
-    <!--     &#60;&#33;&#45;&#45; <remap from="/camera/image_rect_color" to="roomba6/camera/color/image_rect_color" /> &#45;&#45;&#62; -->
-    <!-- </node> -->
+    <node pkg="point_cloud_object_detector" type="point_cloud_object_detector_node" name="object_detector6" output="screen" >
+        <param name="tolerance" value="0.2" type="double"/>
+        <param name="min_cluster_size" value="500" type="int" />
+        <param name="max_cluster_size" value="6000" type="int" />
+        <param name="color_cluster_th" value="40" type="int" />
+        <param name="img_th" value="40" type="int" />
+        <param name="param_file_name" value="/home/amsl/catkin_ws/src/point_cloud_object_detector/config/color_param.yaml" type="string" />
+        <remap from="/object_positions" to="roomba6/object_positions" />
+        <remap from="/darknet_ros/bounding_boxes" to="roomba6/darknet_ros/bounding_boxes" />
+        <remap from="/camera/depth_registered/points" to="roomba6/camera/depth_registered/points" />
+        <remap from="/camera/image_rect_color/compressed" to="roomba6/camera/color/image_rect_color/compressed" />
+        <!-- <remap from="/camera/image_rect_color" to="roomba6/camera/color/image_rect_color" /> -->
+    </node>
     <!-- <node name="depth_republish6" pkg="image_transport" type="republish" args="compressed raw"> -->
     <!--     <remap from="in" to="roomba6/camera/aligned_depth_to_color/image_raw" /> -->
     <!--     <remap from="out" to="roomba6/camera/aligned_depth_to_color/image_raw" /> -->
@@ -154,18 +168,23 @@
     <!-- </node> -->
     <node pkg="nodelet" type="nodelet" name="point_cloud_xyzrgb6" args="load depth_image_proc/point_cloud_xyzrgb $(arg manager_name)">
         <remap from="rgb/camera_info" to="roomba6/camera/color/camera_info" />
-        <!-- <remap from="rgb/image_rect_color" to="roomba6/camera/color/image_rect_color" /> -->
-        <!-- <remap from="depth_registered/image_rect" to="roomba6/camera/aligned_depth_to_color/image_raw" /> -->
-        <!-- <remap from="depth_registered/points" to="roomba6/camera/depth_registered/points" /> -->
-        <remap from="rgb/image_rect_color" to="roomba6/camera/color/image_rect_color/compressed" />
-        <remap from="rgb/image_rect" to="roomba6/camera/aligned_depth_to_color/image_raw/compressed" />
-        <remap from="points" to="roomba6/camera/depth_registered/points" />
+        <remap from="rgb/image_rect_color" to="roomba6/camera/color/image_rect_color" />
+        <remap from="depth_registered/image_rect" to="roomba6/camera/aligned_depth_to_color/image_raw" />
+        <remap from="depth_registered/points" to="roomba6/camera/depth_registered/points" />
+        <!-- <remap from="rgb/image_rect_color" to="roomba6/camera/color/image_rect_color/compressed" /> -->
+        <!-- <remap from="rgb/image_rect" to="roomba6/camera/aligned_depth_to_color/image_raw/compressed" /> -->
+        <!-- <remap from="points" to="roomba6/camera/depth_registered/points" /> -->
     </node>
-
+    <include file="$(find point_cloud_object_detector)/launch/rosbag_recorder.launch">
+        <arg name="roomba" value="6"/>
+    </include>
+    <!--  -->
     <!--make single topic-->
     <!-- <node pkg="camera_rename" type="make_single_topic" name="make_single_topic" /> -->
     <node pkg="camera_rename" type="make_single_topic_comp" name="make_single_topic_comp" />
 
     <!-- <include file="/home/amsl/catkin_ws/src/darknet_ros/darknet_ros/launch/wrs.launch" /> -->
     <include file="/home/amsl/catkin_ws/src/darknet_ros/darknet_ros/launch/use_cmp_img.launch" />
+
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find point_cloud_object_detector)/config/realtime_locali.rviz"/>
 </launch>

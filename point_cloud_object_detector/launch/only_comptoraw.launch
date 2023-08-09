@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="manager_name" default="nodelet_magager" />
+    <node pkg="nodelet" type="nodelet" name="$(arg manager_name)" args="manager" output="screen"/>
+    <node name="depth_republish2" pkg="image_transport" type="republish" args="compressed raw">
+        <remap from="in" to="/front_cam/camera/aligned_depth_to_color/image_raw" />
+        <remap from="out" to="/front_cam/camera/aligned_depth_to_color/image_raw" />
+    </node>
+    <node name="color_republish2" pkg="image_transport" type="republish" args="compressed raw">
+        <remap from="in" to="/front_cam/camera/color/image_rect_color" />
+        <remap from="out" to="/front_cam/camera/color/image_rect_color" />
+    </node>
+    <node pkg="nodelet" type="nodelet" name="point_cloud_xyzrgb2" args="load depth_image_proc/point_cloud_xyzrgb $(arg manager_name)">
+        <remap from="rgb/camera_info" to="/front_cam/camera/color/camera_info" />
+        <!-- <remap from="rgb/camera_info" to="/front_cam/camera/color/camera_info_repub" /> -->
+        <remap from="rgb/image_rect_color" to="/front_cam/camera/color/image_rect_color" />
+        <remap from="depth_registered/image_rect" to="/front_cam/camera/aligned_depth_to_color/image_raw" />
+        <remap from="depth_registered/points" to="/front_cam/camera/depth_registered/points" />
+    </node>
+</launch>

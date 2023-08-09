@@ -6,7 +6,7 @@ PointCloudObjectDetector::PointCloudObjectDetector() : private_nh_("~"), has_rec
     private_nh_.param("bbox_topic_name",bbox_topic_name_,{"/darknet_ros/bounding_boxes"});
     private_nh_.param("obj_topic_name",obj_topic_name_,{"/object_positions"});
     private_nh_.param("obj_frame_name",obj_frame_name_,{"base_link"});
-    private_nh_.param("img_topic_name",img_topic_name_,{"/camera/image_rect_color"});
+    private_nh_.param("img_topic_name",img_topic_name_,{"/camera/image_rect_color/compressed"});
     private_nh_.param("param_file_name",param_file_name_,{"/home/amsl/catkin_ws/src/point_cloud_object_detector/config/color_param.yaml"});
 
     private_nh_.getParam("tolerance",tolerance_);

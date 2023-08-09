@@ -4,7 +4,7 @@
     <arg name="filename" default=""/>
     <arg name="roomba" default=""/>
 
-    <node pkg="rosbag" type="record" name="record" args="-O /home/amsl/bagfiles/karugamo/roomba$(arg roomba).bag /roomba$(arg roomba)/roomba/odometry /roomba$(arg roomba)/scan /roomba$(arg roomba)/camera/color/image_rect_color /roomba$(arg roomba)/object_positions" output="screen" />
+    <node pkg="rosbag" type="record" name="record_$(arg roomba)" args="-o /home/amsl/bagfiles/karugamo/realtime/roomba$(arg roomba).bag /roomba$(arg roomba)/roomba/odometry /roomba$(arg roomba)/scan /roomba$(arg roomba)/camera/color/image_rect_color/compressed /roomba$(arg roomba)/object_positions /roomba$(arg roomba)/db_pose /roomba$(arg roomba)/score" output="screen" />
     <!-- <node pkg="rosbag" type="record" name="record" args="-O /home/amsl/bagfiles/spread/$(arg filename).bag /roomba$(arg roomba)/roomba/odometry /roomba$(arg roomba)/scan /roomba$(arg roomba)/camera/color/image_rect_color /roomba$(arg roomba)/object_positions" output="screen" /> -->
 
 </launch>
